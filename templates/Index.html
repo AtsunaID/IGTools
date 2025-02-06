@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Checker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>🔍 Instagram Live Checker</h2>
+
+        <button id="runButton" onclick="checkAccounts()">▶️ Run</button>
+        <span class="live-count">✅ Live: <span id="liveCount">0</span></span>
+        <span class="dead-count">❌ Dead: <span id="deadCount">0</span></span>
+
+        <textarea id="usernames" placeholder="Masukkan username, satu per baris..."></textarea>
+
+        <div class="result-container">
+            <div>
+                <h3>List of Live accounts</h3>
+                <button onclick="copyText('liveResult')">📋 Copy</button>
+                <textarea id="liveResult" readonly></textarea>
+            </div>
+            <div>
+                <h3>List of Dead accounts</h3>
+                <button onclick="copyText('deadResult')">📋 Copy</button>
+                <textarea id="deadResult" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function checkAccounts() {
+            let input = document.getElementById('usernames').value;
+            let usernames = input.split('\n').map(u => u.trim()).filter(u => u !== "");
+
+            if (usernames.length === 0) {
+                alert("Masukkan setidaknya satu username!");
+                return;
+            }
+
+            fetch('/check_accounts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usernames })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("liveCount").textContent = data.live_count;
+                document.getElementById("deadCount").textContent = data.dead_count;
+
+                document.getElementById("liveResult").value = data.live_accounts.join("\n");
+                document.getElementById("deadResult").value = data.dead_accounts.join("\n");
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function copyText(id) {
+            let textarea = document.getElementById(id);
+            textarea.select();
+            document.execCommand("copy");
+            alert("Copied!");
+        }
+    </script>
+</body>
+</html>
